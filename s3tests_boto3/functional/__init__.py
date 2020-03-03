@@ -339,7 +339,8 @@ def get_new_bucket(client=None, name=None):
     if name is None:
         name = get_new_bucket_name()
 
-    client.create_bucket(Bucket=name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(Bucket=name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
     return name
 
 
