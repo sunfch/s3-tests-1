@@ -14,6 +14,7 @@ from . import (
     get_v2_client,
     get_new_bucket,
     get_new_bucket_name,
+    get_main_api_name,
     )
 
 def _add_header_create_object(headers, client=None):
@@ -95,7 +96,9 @@ def _add_header_create_bucket(headers, client=None):
     # pass in custom headers before PutObject call
     add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
     client.meta.events.register('before-call.s3.CreateBucket', add_headers)
-    client.create_bucket(Bucket=bucket_name)
+    #client.create_bucket(Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
 
     return bucket_name
 
@@ -110,7 +113,9 @@ def _add_header_create_bad_bucket(headers=None, client=None):
     # pass in custom headers before PutObject call
     add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
     client.meta.events.register('before-call.s3.CreateBucket', add_headers)
-    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
+    #e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
 
     return e
 
@@ -128,7 +133,9 @@ def _remove_header_create_bucket(remove, client=None):
             del kwargs['params']['headers'][remove]
 
     client.meta.events.register('before-call.s3.CreateBucket', remove_header)
-    client.create_bucket(Bucket=bucket_name)
+    #client.create_bucket(Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
 
     return bucket_name
 
@@ -145,7 +152,9 @@ def _remove_header_create_bad_bucket(remove, client=None):
             del kwargs['params']['headers'][remove]
 
     client.meta.events.register('before-call.s3.CreateBucket', remove_header)
-    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
+    #e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
 
     return e
 
@@ -289,7 +298,8 @@ def test_object_create_bad_contentlength_mismatch_above():
     key_name = 'foo'
     headers = {'Content-Length': str(length)}
     add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
-    client.meta.events.register('before-sign.s3.PutObject', add_headers_before_sign)
+    #client.meta.events.register('before-sign.s3.PutObject', add_headers_before_sign)
+    client.meta.events.register('before-sign.s3.PutObject', add_headers)
 
     e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=key_name, Body=content)
     status, error_code = _get_status_and_error_code(e.response)
@@ -440,7 +450,9 @@ def test_bucket_create_bad_expect_mismatch():
     headers = {'Expect': 200}
     add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
     client.meta.events.register('before-call.s3.CreateBucket', add_headers)
-    client.create_bucket(Bucket=bucket_name)
+    #client.create_bucket(Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
 
 @tag('auth_common')
 @attr(resource='bucket')
@@ -790,4 +802,5 @@ def test_bucket_create_bad_date_before_epoch_aws2():
     e = _add_header_create_bad_bucket(headers, v2_client)
     status, error_code = _get_status_and_error_code(e.response)
     eq(status, 403)
-    eq(error_code, 'AccessDenied')
+    #eq(error_code, 'AccessDenied')
+    eq(error_code, 'RequestTimeTooSkewed')

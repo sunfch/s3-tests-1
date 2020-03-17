@@ -324,7 +324,9 @@ def get_new_bucket_resource(name=None):
     if name is None:
         name = get_new_bucket_name()
     bucket = s3.Bucket(name)
-    bucket_location = bucket.create()
+    #bucket_location = bucket.create()
+    location_constraint = get_main_api_name()
+    bucket_location = bucket.create(CreateBucketConfiguration={'LocationConstraint': location_constraint})
     return bucket
 
 def get_new_bucket(client=None, name=None):
@@ -339,7 +341,9 @@ def get_new_bucket(client=None, name=None):
     if name is None:
         name = get_new_bucket_name()
 
-    client.create_bucket(Bucket=name)
+    #client.create_bucket(Bucket=name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(Bucket=name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
     return name
 
 

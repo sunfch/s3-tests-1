@@ -2244,7 +2244,9 @@ def test_post_object_anonymous_request():
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
     ("Content-Type" , "text/plain"),('file', ('bar'))])
 
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    #client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location_constraint})
     r = requests.post(url, files = payload)
     eq(r.status_code, 204)
     response = client.get_object(Bucket=bucket_name, Key='foo.txt')
@@ -3633,7 +3635,9 @@ def _setup_bucket_object_acl(bucket_acl, object_acl):
     """
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+    #client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location_constraint})
     client.put_object(ACL=object_acl, Bucket=bucket_name, Key='foo')
 
     return bucket_name
@@ -4071,7 +4075,9 @@ def check_good_bucket_name(name, _prefix=None):
             name=name,
             )
     client = get_client()
-    response = client.create_bucket(Bucket=bucket_name)
+    #response = client.create_bucket(Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    response = client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location_constraint})
     eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
 def _test_bucket_create_naming_good_long(length):
@@ -4321,8 +4327,11 @@ def test_bucket_create_exists_nonowner():
 
     alt_client = get_alt_client()
 
-    client.create_bucket(Bucket=bucket_name)
-    e = assert_raises(ClientError, alt_client.create_bucket, Bucket=bucket_name)
+    #client.create_bucket(Bucket=bucket_name)
+    #e = assert_raises(ClientError, alt_client.create_bucket, Bucket=bucket_name)
+    location_constraint = get_main_api_name()
+    client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
+    e = assert_raises(ClientError, alt_client.create_bucket, Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint':location_constraint})
     status, error_code = _get_status_and_error_code(e.response)
     eq(status, 409)
     eq(error_code, 'BucketAlreadyExists')
@@ -5945,8 +5954,10 @@ def test_buckets_create_then_list():
         bucket_name = get_new_bucket_name()
         bucket_names.append(bucket_name)
 
+    location_constraint = get_main_api_name()
     for name in bucket_names:
-        client.create_bucket(Bucket=name)
+        #client.create_bucket(Bucket=name)
+        client.create_bucket(Bucket=name, CreateBucketConfiguration={'LocationConstraint': location_constraint})
 
     response = client.list_buckets()
     bucket_dicts = response['Buckets']
