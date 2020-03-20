@@ -85,6 +85,7 @@ def _bucket_is_empty(bucket):
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='empty buckets return no contents')
+@attr('soda_test')
 def test_bucket_list_empty():
     bucket = get_new_bucket_resource()
     is_empty = _bucket_is_empty(bucket)
@@ -94,6 +95,7 @@ def test_bucket_list_empty():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='distinct buckets have different contents')
+@attr('soda_test')
 def test_bucket_list_distinct():
     bucket1 = get_new_bucket_resource()
     bucket2 = get_new_bucket_resource()
@@ -140,6 +142,7 @@ def _get_prefixes(response):
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='pagination w/max_keys=2, no marker')
+@attr('soda_test')
 def test_bucket_list_many():
     bucket_name = _create_objects(keys=['foo', 'bar', 'baz'])
     client = get_client()
@@ -161,6 +164,7 @@ def test_bucket_list_many():
 @attr(operation='list all keys')
 @attr(assertion='pagination w/max_keys=2, no marker')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_many():
     bucket_name = _create_objects(keys=['foo', 'bar', 'baz'])
     client = get_client()
@@ -199,6 +203,7 @@ def test_basic_key_count():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='prefixes in multi-component object names')
+@attr('soda_test')
 def test_bucket_list_delimiter_basic():
     bucket_name = _create_objects(keys=['foo/bar', 'foo/bar/xyzzy', 'quux/thud', 'asdf'])
     client = get_client()
@@ -217,6 +222,7 @@ def test_bucket_list_delimiter_basic():
 @attr(operation='list')
 @attr(assertion='prefixes in multi-component object names')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_basic():
     bucket_name = _create_objects(keys=['foo/bar', 'foo/bar/xyzzy', 'quux/thud', 'asdf'])
     client = get_client()
@@ -236,6 +242,7 @@ def test_bucket_listv2_delimiter_basic():
 @attr(operation='list')
 @attr(assertion='test url encoding')
 @attr('list-objects-v2')
+@attr('fails_on_aws')
 def test_bucket_listv2_encoding_basic():
     bucket_name = _create_objects(keys=['foo+1/bar', 'foo/bar/xyzzy', 'quux ab/thud', 'asdf+b'])
     client = get_client()
@@ -254,6 +261,7 @@ def test_bucket_listv2_encoding_basic():
 @attr(operation='list')
 @attr(assertion='test url encoding')
 @attr('list-objects')
+@attr('fails_on_aws')
 def test_bucket_list_encoding_basic():
     bucket_name = _create_objects(keys=['foo+1/bar', 'foo/bar/xyzzy', 'quux ab/thud', 'asdf+b'])
     client = get_client()
@@ -319,6 +327,7 @@ def validate_bucket_listv2(bucket_name, prefix, delimiter, continuation_token, m
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='prefixes in multi-component object names')
+@attr('soda_test')
 def test_bucket_list_delimiter_prefix():
     bucket_name = _create_objects(keys=['asdf', 'boo/bar', 'boo/baz/xyzzy', 'cquux/thud', 'cquux/bla'])
 
@@ -345,6 +354,7 @@ def test_bucket_list_delimiter_prefix():
 @attr(operation='list')
 @attr(assertion='prefixes in multi-component object names')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_prefix():
     bucket_name = _create_objects(keys=['asdf', 'boo/bar', 'boo/baz/xyzzy', 'cquux/thud', 'cquux/bla'])
 
@@ -372,6 +382,7 @@ def test_bucket_listv2_delimiter_prefix():
 @attr(operation='list')
 @attr(assertion='prefix and delimiter handling when object ends with delimiter')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_prefix_ends_with_delimiter():
     bucket_name = _create_objects(keys=['asdf/'])
     validate_bucket_listv2(bucket_name, 'asdf/', '/', None, 1000, False, ['asdf/'], [], last=True)
@@ -380,6 +391,7 @@ def test_bucket_listv2_delimiter_prefix_ends_with_delimiter():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='prefix and delimiter handling when object ends with delimiter')
+@attr('soda_test')
 def test_bucket_list_delimiter_prefix_ends_with_delimiter():
     bucket_name = _create_objects(keys=['asdf/'])
     validate_bucket_list(bucket_name, 'asdf/', '/', '', 1000, False, ['asdf/'], [], None)
@@ -388,6 +400,7 @@ def test_bucket_list_delimiter_prefix_ends_with_delimiter():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='non-slash delimiter characters')
+@attr('soda_test')
 def test_bucket_list_delimiter_alt():
     bucket_name = _create_objects(keys=['bar', 'baz', 'cab', 'foo'])
     client = get_client()
@@ -408,6 +421,7 @@ def test_bucket_list_delimiter_alt():
 @attr(method='get')
 @attr(assertion='non-slash delimiter characters')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_alt():
     bucket_name = _create_objects(keys=['bar', 'baz', 'cab', 'foo'])
     client = get_client()
@@ -428,6 +442,7 @@ def test_bucket_listv2_delimiter_alt():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='prefixes starting with underscore')
+@attr('soda_test')
 def test_bucket_list_delimiter_prefix_underscore():
     bucket_name = _create_objects(keys=['_obj1_','_under1/bar', '_under1/baz/xyzzy', '_under2/thud', '_under2/bla'])
 
@@ -453,6 +468,7 @@ def test_bucket_list_delimiter_prefix_underscore():
 @attr(operation='list')
 @attr(assertion='prefixes starting with underscore')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_prefix_underscore():
     bucket_name = _create_objects(keys=['_obj1_','_under1/bar', '_under1/baz/xyzzy', '_under2/thud', '_under2/bla'])
 
@@ -478,6 +494,7 @@ def test_bucket_listv2_delimiter_prefix_underscore():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='percentage delimiter characters')
+@attr('soda_test')
 def test_bucket_list_delimiter_percentage():
     bucket_name = _create_objects(keys=['b%ar', 'b%az', 'c%ab', 'foo'])
     client = get_client()
@@ -497,6 +514,7 @@ def test_bucket_list_delimiter_percentage():
 @attr(method='get')
 @attr(assertion='percentage delimiter characters')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_percentage():
     bucket_name = _create_objects(keys=['b%ar', 'b%az', 'c%ab', 'foo'])
     client = get_client()
@@ -516,6 +534,7 @@ def test_bucket_listv2_delimiter_percentage():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='whitespace delimiter characters')
+@attr('soda_test')
 def test_bucket_list_delimiter_whitespace():
     bucket_name = _create_objects(keys=['b ar', 'b az', 'c ab', 'foo'])
     client = get_client()
@@ -535,6 +554,7 @@ def test_bucket_list_delimiter_whitespace():
 @attr(method='get')
 @attr(assertion='whitespace delimiter characters')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_whitespace():
     bucket_name = _create_objects(keys=['b ar', 'b az', 'c ab', 'foo'])
     client = get_client()
@@ -554,6 +574,7 @@ def test_bucket_listv2_delimiter_whitespace():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='dot delimiter characters')
+@attr('soda_test')
 def test_bucket_list_delimiter_dot():
     bucket_name = _create_objects(keys=['b.ar', 'b.az', 'c.ab', 'foo'])
     client = get_client()
@@ -573,6 +594,7 @@ def test_bucket_list_delimiter_dot():
 @attr(method='get')
 @attr(assertion='dot delimiter characters')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_dot():
     bucket_name = _create_objects(keys=['b.ar', 'b.az', 'c.ab', 'foo'])
     client = get_client()
@@ -592,6 +614,7 @@ def test_bucket_listv2_delimiter_dot():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='non-printable delimiter can be specified')
+@attr('soda_test')
 def test_bucket_list_delimiter_unreadable():
     key_names=['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -609,6 +632,7 @@ def test_bucket_list_delimiter_unreadable():
 @attr(method='get')
 @attr(assertion='non-printable delimiter can be specified')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_unreadable():
     key_names=['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -626,6 +650,7 @@ def test_bucket_listv2_delimiter_unreadable():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='empty delimiter can be specified')
+@attr('soda_test')
 def test_bucket_list_delimiter_empty():
     key_names = ['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -644,6 +669,7 @@ def test_bucket_list_delimiter_empty():
 @attr(method='get')
 @attr(assertion='empty delimiter can be specified')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_empty():
     key_names = ['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -662,6 +688,7 @@ def test_bucket_listv2_delimiter_empty():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='unspecified delimiter defaults to none')
+@attr('soda_test')
 def test_bucket_list_delimiter_none():
     key_names = ['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -680,6 +707,7 @@ def test_bucket_list_delimiter_none():
 @attr(method='get')
 @attr(assertion='unspecified delimiter defaults to none')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_none():
     key_names = ['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -695,6 +723,7 @@ def test_bucket_listv2_delimiter_none():
     eq(prefixes, [])
 
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_fetchowner_notempty():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -705,6 +734,7 @@ def test_bucket_listv2_fetchowner_notempty():
     eq('Owner' in objs_list[0], True)
 
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_fetchowner_defaultempty():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -715,6 +745,7 @@ def test_bucket_listv2_fetchowner_defaultempty():
     eq('Owner' in objs_list[0], False)
 
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_fetchowner_empty():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -731,6 +762,7 @@ def test_bucket_listv2_fetchowner_empty():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='unused delimiter is not found')
+@attr('soda_test')
 def test_bucket_list_delimiter_not_exist():
     key_names = ['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -749,6 +781,7 @@ def test_bucket_list_delimiter_not_exist():
 @attr(method='get')
 @attr(assertion='unused delimiter is not found')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_delimiter_not_exist():
     key_names = ['bar', 'baz', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -768,6 +801,7 @@ def test_bucket_listv2_delimiter_not_exist():
 @attr(method='get')
 @attr(operation='list')
 @attr(assertion='list with delimiter not skip special keys')
+@attr('soda_test')
 def test_bucket_list_delimiter_not_skip_special():
     key_names = ['0/'] + ['0/%s' % i for i in range(1000, 1999)]
     key_names2 = ['1999', '1999#', '1999+', '2000']
@@ -787,6 +821,7 @@ def test_bucket_list_delimiter_not_skip_special():
 @attr(method='get')
 @attr(operation='list under prefix')
 @attr(assertion='returns only objects under prefix')
+@attr('soda_test')
 def test_bucket_list_prefix_basic():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -805,6 +840,7 @@ def test_bucket_list_prefix_basic():
 @attr(operation='list under prefix with list-objects-v2')
 @attr(assertion='returns only objects under prefix')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_basic():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -823,6 +859,7 @@ def test_bucket_listv2_prefix_basic():
 @attr(method='get')
 @attr(operation='list under prefix')
 @attr(assertion='prefixes w/o delimiters')
+@attr('soda_test')
 def test_bucket_list_prefix_alt():
     key_names = ['bar', 'baz', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -841,6 +878,7 @@ def test_bucket_list_prefix_alt():
 @attr(operation='list under prefix with list-objects-v2')
 @attr(assertion='prefixes w/o delimiters')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_alt():
     key_names = ['bar', 'baz', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -858,6 +896,7 @@ def test_bucket_listv2_prefix_alt():
 @attr(method='get')
 @attr(operation='list under prefix')
 @attr(assertion='empty prefix returns everything')
+@attr('soda_test')
 def test_bucket_list_prefix_empty():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -876,6 +915,7 @@ def test_bucket_list_prefix_empty():
 @attr(operation='list under prefix with list-objects-v2')
 @attr(assertion='empty prefix returns everything')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_empty():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -893,6 +933,7 @@ def test_bucket_listv2_prefix_empty():
 @attr(method='get')
 @attr(operation='list under prefix')
 @attr(assertion='unspecified prefix returns everything')
+@attr('soda_test')
 def test_bucket_list_prefix_none():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -911,6 +952,7 @@ def test_bucket_list_prefix_none():
 @attr(operation='list under prefix with list-objects-v2')
 @attr(assertion='unspecified prefix returns everything')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_none():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -928,6 +970,7 @@ def test_bucket_listv2_prefix_none():
 @attr(method='get')
 @attr(operation='list under prefix')
 @attr(assertion='nonexistent prefix returns nothing')
+@attr('soda_test')
 def test_bucket_list_prefix_not_exist():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -946,6 +989,7 @@ def test_bucket_list_prefix_not_exist():
 @attr(operation='list under prefix with list-objects-v2')
 @attr(assertion='nonexistent prefix returns nothing')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_not_exist():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -963,6 +1007,7 @@ def test_bucket_listv2_prefix_not_exist():
 @attr(method='get')
 @attr(operation='list under prefix')
 @attr(assertion='non-printable prefix can be specified')
+@attr('fails_on_aws') #Got prefix '%0A' while '\x0a' is expected.
 def test_bucket_list_prefix_unreadable():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -981,6 +1026,7 @@ def test_bucket_list_prefix_unreadable():
 @attr(operation='list under prefix with list-objects-v2')
 @attr(assertion='non-printable prefix can be specified')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_unreadable():
     key_names = ['foo/bar', 'foo/baz', 'quux']
     bucket_name = _create_objects(keys=key_names)
@@ -998,6 +1044,7 @@ def test_bucket_listv2_prefix_unreadable():
 @attr(method='get')
 @attr(operation='list under prefix w/delimiter')
 @attr(assertion='returns only objects directly under prefix')
+@attr('soda_test')
 def test_bucket_list_prefix_delimiter_basic():
     key_names = ['foo/bar', 'foo/baz/xyzzy', 'quux/thud', 'asdf']
     bucket_name = _create_objects(keys=key_names)
@@ -1017,6 +1064,7 @@ def test_bucket_list_prefix_delimiter_basic():
 @attr(operation='list-objects-v2 under prefix w/delimiter')
 @attr(assertion='returns only objects directly under prefix')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_delimiter_basic():
     key_names = ['foo/bar', 'foo/baz/xyzzy', 'quux/thud', 'asdf']
     bucket_name = _create_objects(keys=key_names)
@@ -1035,6 +1083,7 @@ def test_bucket_listv2_prefix_delimiter_basic():
 @attr(method='get')
 @attr(operation='list under prefix w/delimiter')
 @attr(assertion='non-slash delimiters')
+@attr('soda_test')
 def test_bucket_list_prefix_delimiter_alt():
     key_names = ['bar', 'bazar', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -1050,6 +1099,7 @@ def test_bucket_list_prefix_delimiter_alt():
     eq(prefixes, ['baza'])
 
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_delimiter_alt():
     key_names = ['bar', 'bazar', 'cab', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -1068,6 +1118,7 @@ def test_bucket_listv2_prefix_delimiter_alt():
 @attr(method='get')
 @attr(operation='list under prefix w/delimiter')
 @attr(assertion='finds nothing w/unmatched prefix')
+@attr('soda_test')
 def test_bucket_list_prefix_delimiter_prefix_not_exist():
     key_names = ['b/a/r', 'b/a/c', 'b/a/g', 'g']
     bucket_name = _create_objects(keys=key_names)
@@ -1085,6 +1136,7 @@ def test_bucket_list_prefix_delimiter_prefix_not_exist():
 @attr(operation='list-objects-v2 under prefix w/delimiter')
 @attr(assertion='finds nothing w/unmatched prefix')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_delimiter_prefix_not_exist():
     key_names = ['b/a/r', 'b/a/c', 'b/a/g', 'g']
     bucket_name = _create_objects(keys=key_names)
@@ -1101,6 +1153,7 @@ def test_bucket_listv2_prefix_delimiter_prefix_not_exist():
 @attr(method='get')
 @attr(operation='list under prefix w/delimiter')
 @attr(assertion='over-ridden slash ceases to be a delimiter')
+@attr('soda_test')
 def test_bucket_list_prefix_delimiter_delimiter_not_exist():
     key_names = ['b/a/c', 'b/a/g', 'b/a/r', 'g']
     bucket_name = _create_objects(keys=key_names)
@@ -1118,6 +1171,7 @@ def test_bucket_list_prefix_delimiter_delimiter_not_exist():
 @attr(operation='list-objects-v2 under prefix w/delimiter')
 @attr(assertion='over-ridden slash ceases to be a delimiter')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_delimiter_delimiter_not_exist():
     key_names = ['b/a/c', 'b/a/g', 'b/a/r', 'g']
     bucket_name = _create_objects(keys=key_names)
@@ -1134,6 +1188,7 @@ def test_bucket_listv2_prefix_delimiter_delimiter_not_exist():
 @attr(method='get')
 @attr(operation='list under prefix w/delimiter')
 @attr(assertion='finds nothing w/unmatched prefix and delimiter')
+@attr('soda_test')
 def test_bucket_list_prefix_delimiter_prefix_delimiter_not_exist():
     key_names = ['b/a/c', 'b/a/g', 'b/a/r', 'g']
     bucket_name = _create_objects(keys=key_names)
@@ -1151,6 +1206,7 @@ def test_bucket_list_prefix_delimiter_prefix_delimiter_not_exist():
 @attr(operation='list-objects-v2 under prefix w/delimiter')
 @attr(assertion='finds nothing w/unmatched prefix and delimiter')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_prefix_delimiter_prefix_delimiter_not_exist():
     key_names = ['b/a/c', 'b/a/g', 'b/a/r', 'g']
     bucket_name = _create_objects(keys=key_names)
@@ -1167,6 +1223,7 @@ def test_bucket_listv2_prefix_delimiter_prefix_delimiter_not_exist():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='pagination w/max_keys=1, marker')
+@attr('soda_test')
 def test_bucket_list_maxkeys_one():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1189,6 +1246,7 @@ def test_bucket_list_maxkeys_one():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='pagination w/max_keys=1, marker')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_maxkeys_one():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1210,6 +1268,7 @@ def test_bucket_listv2_maxkeys_one():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='pagination w/max_keys=0')
+@attr('soda_test')
 def test_bucket_list_maxkeys_zero():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1226,6 +1285,7 @@ def test_bucket_list_maxkeys_zero():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='pagination w/max_keys=0')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_maxkeys_zero():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1241,6 +1301,7 @@ def test_bucket_listv2_maxkeys_zero():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='pagination w/o max_keys')
+@attr('soda_test')
 def test_bucket_list_maxkeys_none():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1257,6 +1318,7 @@ def test_bucket_list_maxkeys_none():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='pagination w/o max_keys')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_maxkeys_none():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1386,6 +1448,7 @@ def test_bucket_listv2_unordered():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='invalid max_keys')
+@attr('soda_test')
 def test_bucket_list_maxkeys_invalid():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1408,6 +1471,7 @@ def test_bucket_list_maxkeys_invalid():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='no pagination, no marker')
+@attr('soda_test')
 def test_bucket_list_marker_none():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1421,6 +1485,7 @@ def test_bucket_list_marker_none():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='no pagination, empty marker')
+@attr('soda_test')
 def test_bucket_list_marker_empty():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1437,6 +1502,7 @@ def test_bucket_list_marker_empty():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='no pagination, empty continuationtoken')
 @attr('list-objects-v2')
+@attr('fails_on_aws')
 def test_bucket_listv2_continuationtoken_empty():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1453,6 +1519,7 @@ def test_bucket_listv2_continuationtoken_empty():
 @attr(operation='list keys with list-objects-v2')
 @attr(assertion='no pagination, non-empty continuationtoken')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_continuationtoken():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1473,6 +1540,7 @@ def test_bucket_listv2_continuationtoken():
 @attr(operation='list keys with list-objects-v2')
 @attr(assertion='no pagination, non-empty continuationtoken and startafter')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_both_continuationtoken_startafter():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1493,6 +1561,7 @@ def test_bucket_listv2_both_continuationtoken_startafter():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='non-printing marker')
+@attr('soda_test')
 def test_bucket_list_marker_unreadable():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1509,6 +1578,7 @@ def test_bucket_list_marker_unreadable():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='non-printing startafter')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_startafter_unreadable():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1524,6 +1594,7 @@ def test_bucket_listv2_startafter_unreadable():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='marker not-in-list')
+@attr('soda_test')
 def test_bucket_list_marker_not_in_list():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1539,6 +1610,7 @@ def test_bucket_list_marker_not_in_list():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='startafter not-in-list')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_startafter_not_in_list():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1553,6 +1625,7 @@ def test_bucket_listv2_startafter_not_in_list():
 @attr(method='get')
 @attr(operation='list all keys')
 @attr(assertion='marker after list')
+@attr('soda_test')
 def test_bucket_list_marker_after_list():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1569,6 +1642,7 @@ def test_bucket_list_marker_after_list():
 @attr(operation='list all keys with list-objects-v2')
 @attr(assertion='startafter after list')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_startafter_after_list():
     key_names = ['bar', 'baz', 'foo', 'quxx']
     bucket_name = _create_objects(keys=key_names)
@@ -1593,6 +1667,7 @@ def _compare_dates(datetime1, datetime2):
 @attr(method='head')
 @attr(operation='compare w/bucket list')
 @attr(assertion='return same metadata')
+@attr('soda_test')
 def test_bucket_list_return_data():
     key_names = ['bar', 'baz', 'foo']
     bucket_name = _create_objects(keys=key_names)
@@ -1691,6 +1766,7 @@ def test_bucket_list_return_data_versioning():
 @attr(method='get')
 @attr(operation='list all objects (anonymous)')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_bucket_list_objects_anonymous():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -1704,6 +1780,7 @@ def test_bucket_list_objects_anonymous():
 @attr(operation='list all objects (anonymous) with list-objects-v2')
 @attr(assertion='succeeds')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_objects_anonymous():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -1716,6 +1793,7 @@ def test_bucket_listv2_objects_anonymous():
 @attr(method='get')
 @attr(operation='list all objects (anonymous)')
 @attr(assertion='fails')
+@attr('soda_test')
 def test_bucket_list_objects_anonymous_fail():
     bucket_name = get_new_bucket()
 
@@ -1731,6 +1809,7 @@ def test_bucket_list_objects_anonymous_fail():
 @attr(operation='list all objects (anonymous) with list-objects-v2')
 @attr(assertion='fails')
 @attr('list-objects-v2')
+@attr('soda_test')
 def test_bucket_listv2_objects_anonymous_fail():
     bucket_name = get_new_bucket()
 
@@ -4156,6 +4235,7 @@ def test_bucket_create_naming_good_long_63():
 @attr(assertion='fails with subdomain')
 @attr('fails_on_aws') # <Error><Code>InvalidBucketName</Code><Message>The specified bucket is not valid.</Message>...</Error>
 # Should now pass on AWS even though it has 'fails_on_aws' attr.
+@attr('soda_test')
 def test_bucket_list_long_name():
     prefix = get_new_bucket_name()
     length = 61
@@ -6102,6 +6182,7 @@ def test_bucket_create_special_key_names():
 @attr(method='get')
 @attr(operation='create and list objects with underscore as prefix, list using prefix')
 @attr(assertion='listing works correctly')
+@attr('soda_test')
 def test_bucket_list_special_prefix():
     key_names = ['_bla/1', '_bla/2', '_bla/3', '_bla/4', 'abcd']
     bucket_name = _create_objects(keys=key_names)

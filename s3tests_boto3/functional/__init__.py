@@ -118,9 +118,12 @@ def nuke_prefixed_buckets(prefix, client=None):
             objects_list = get_objects_list(bucket_name, client)
             for obj in objects_list:
                 response = client.delete_object(Bucket=bucket_name,Key=obj)
-            versioned_objects_list = get_versioned_objects_list(bucket_name, client)
+            #versioned_objects_list = get_versioned_objects_list(bucket_name, client)
+            #Currently, SODA does not support version, so use get_objects_list for a temporary workaround.
+            versioned_objects_list = get_objects_list(bucket_name, client)
             for obj in versioned_objects_list:
-                response = client.delete_object(Bucket=bucket_name,Key=obj[0],VersionId=obj[1])
+                #response = client.delete_object(Bucket=bucket_name,Key=obj[0],VersionId=obj[1])
+                response = client.delete_object(Bucket=bucket_name,Key=obj)
             delete_markers = get_delete_markers_list(bucket_name, client)
             for obj in delete_markers:
                 response = client.delete_object(Bucket=bucket_name,Key=obj[0],VersionId=obj[1])
