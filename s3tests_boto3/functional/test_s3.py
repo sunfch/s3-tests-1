@@ -9148,6 +9148,7 @@ def test_lifecycle_invalid_status():
 @attr(method='put')
 @attr(operation='set lifecycle config with expiration date')
 @attr('lifecycle')
+#SODA does not support expiration date, but support expiration days now.
 def test_lifecycle_set_date():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -9162,6 +9163,7 @@ def test_lifecycle_set_date():
 @attr(operation='set lifecycle config with not iso8601 date')
 @attr('lifecycle')
 @attr(assertion='fails 400')
+#SODA does not support expiration date, but support expiration days now.
 def test_lifecycle_set_invalid_date():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -9340,6 +9342,7 @@ def test_lifecycle_noncur_expiration():
 @attr(method='put')
 @attr(operation='set lifecycle config with delete marker expiration')
 @attr('lifecycle')
+#SODA does not support delete marker now, that's for versioning.
 def test_lifecycle_set_deletemarker():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -9352,6 +9355,7 @@ def test_lifecycle_set_deletemarker():
 @attr(method='put')
 @attr(operation='set lifecycle config with Filter')
 @attr('lifecycle')
+#SODA does not support delete marker now, that's for versioning.
 def test_lifecycle_set_filter():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -9364,6 +9368,7 @@ def test_lifecycle_set_filter():
 @attr(method='put')
 @attr(operation='set lifecycle config with empty Filter')
 @attr('lifecycle')
+#SODA does not support delete marker now, that's for versioning.
 def test_lifecycle_set_empty_filter():
     bucket_name = get_new_bucket()
     client = get_client()
