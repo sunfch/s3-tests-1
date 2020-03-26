@@ -8921,6 +8921,7 @@ def test_versioned_concurrent_object_create_and_remove():
 @attr(method='put')
 @attr(operation='set lifecycle config')
 @attr('lifecycle')
+@attr('soda_test')
 def test_lifecycle_set():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -8934,11 +8935,12 @@ def test_lifecycle_set():
 @attr(method='get')
 @attr(operation='get lifecycle config')
 @attr('lifecycle')
+@attr('soda_test')
 def test_lifecycle_get():
     bucket_name = get_new_bucket()
     client = get_client()
-    rules=[{'ID': 'test1/', 'Expiration': {'Days': 31}, 'Prefix': 'test1/', 'Status':'Enabled'},
-           {'ID': 'test2/', 'Expiration': {'Days': 120}, 'Prefix': 'test2/', 'Status':'Enabled'}]
+    rules=[{'ID': 'test1/', 'Expiration': {'Days': 31}, 'Filter':{'Prefix': 'test1/'}, 'Status':'Enabled'},
+           {'ID': 'test2/', 'Expiration': {'Days': 120}, 'Filter':{'Prefix': 'test2/'}, 'Status':'Enabled'}]
     lifecycle = {'Rules': rules}
     client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
     response = client.get_bucket_lifecycle_configuration(Bucket=bucket_name)
@@ -8948,12 +8950,13 @@ def test_lifecycle_get():
 @attr(method='get')
 @attr(operation='get lifecycle config no id')
 @attr('lifecycle')
+@attr('soda_test')
 def test_lifecycle_get_no_id():
     bucket_name = get_new_bucket()
     client = get_client()
 
-    rules=[{'Expiration': {'Days': 31}, 'Prefix': 'test1/', 'Status':'Enabled'},
-           {'Expiration': {'Days': 120}, 'Prefix': 'test2/', 'Status':'Enabled'}]
+    rules=[{'Expiration': {'Days': 31}, 'Filter':{'Prefix': 'test1/'}, 'Status':'Enabled'},
+           {'Expiration': {'Days': 120}, 'Filter':{'Prefix': 'test2/'}, 'Status':'Enabled'}]
     lifecycle = {'Rules': rules}
     client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
     response = client.get_bucket_lifecycle_configuration(Bucket=bucket_name)
@@ -8964,11 +8967,11 @@ def test_lifecycle_get_no_id():
              'rule2' : Rule('test2/','Enabled',120)}
 
     for lc_rule in current_lc:
-        if lc_rule['Prefix'] == rules['rule1'].prefix:
+        if lc_rule['Filter']['Prefix'] == rules['rule1'].prefix:
             eq(lc_rule['Expiration']['Days'], rules['rule1'].days)
             eq(lc_rule['Status'], rules['rule1'].status)
             assert 'ID' in lc_rule
-        elif lc_rule['Prefix'] == rules['rule2'].prefix:
+        elif lc_rule['Filter']['Prefix'] == rules['rule2'].prefix:
             eq(lc_rule['Expiration']['Days'], rules['rule2'].days)
             eq(lc_rule['Status'], rules['rule2'].status)
             assert 'ID' in lc_rule
@@ -9077,11 +9080,12 @@ def test_lifecycle_expiration_versioning_enabled():
 @attr(method='put')
 @attr(operation='id too long in lifecycle rule')
 @attr('lifecycle')
+@attr('soda_test')
 @attr(assertion='fails 400')
 def test_lifecycle_id_too_long():
     bucket_name = get_new_bucket()
     client = get_client()
-    rules=[{'ID': 256*'a', 'Expiration': {'Days': 2}, 'Prefix': 'test1/', 'Status':'Enabled'}]
+    rules=[{'ID': 256*'a', 'Expiration': {'Days': 2}, 'Filter':{'Prefix': 'test1/'}, 'Status':'Enabled'}]
     lifecycle = {'Rules': rules}
 
     e = assert_raises(ClientError, client.put_bucket_lifecycle_configuration, Bucket=bucket_name, LifecycleConfiguration=lifecycle)
@@ -9093,6 +9097,7 @@ def test_lifecycle_id_too_long():
 @attr(method='put')
 @attr(operation='same id')
 @attr('lifecycle')
+@attr('soda_test')
 @attr(assertion='fails 400')
 def test_lifecycle_same_id():
     bucket_name = get_new_bucket()
@@ -9110,11 +9115,12 @@ def test_lifecycle_same_id():
 @attr(method='put')
 @attr(operation='invalid status in lifecycle rule')
 @attr('lifecycle')
+@attr('soda_test')
 @attr(assertion='fails 400')
 def test_lifecycle_invalid_status():
     bucket_name = get_new_bucket()
     client = get_client()
-    rules=[{'ID': 'rule1', 'Expiration': {'Days': 2}, 'Prefix': 'test1/', 'Status':'enabled'}]
+    rules=[{'ID': 'rule1', 'Expiration': {'Days': 2}, 'Filter':{'Prefix': 'test1/'}, 'Status':'enabled'}]
     lifecycle = {'Rules': rules}
 
     e = assert_raises(ClientError, client.put_bucket_lifecycle_configuration, Bucket=bucket_name, LifecycleConfiguration=lifecycle)
@@ -9193,6 +9199,7 @@ def test_lifecycle_expiration_date():
 @attr(method='put')
 @attr(operation='test lifecycle expiration days 0')
 @attr('lifecycle')
+@attr('fails_on_aws')
 @attr('lifecycle_expiration')
 def test_lifecycle_expiration_days0():
     bucket_name = _create_objects(keys=['days0/foo', 'days0/bar'])
@@ -9213,30 +9220,34 @@ def test_lifecycle_expiration_days0():
     eq(len(expire_objects), 0)
 
 
-def setup_lifecycle_expiration(bucket_name, rule_id, delta_days,
+def setup_lifecycle_expiration(client, bucket_name, rule_id, delta_days,
                                     rule_prefix):
     rules=[{'ID': rule_id,
-            'Expiration': {'Days': delta_days}, 'Prefix': rule_prefix,
+            'Expiration': {'Days': delta_days}, 'Filter':{'Prefix': rule_prefix},
             'Status':'Enabled'}]
     lifecycle = {'Rules': rules}
     response = client.put_bucket_lifecycle_configuration(
         Bucket=bucket_name, LifecycleConfiguration=lifecycle)
     eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    key = rule_prefix + '/foo'
+    key = rule_prefix + 'foo'
     body = 'bar'
-    response = client.put_object(Bucket=bucket_name, Key=key, Body=bar)
+    response = client.put_object(Bucket=bucket_name, Key=key, Body=body)
     eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
+    response = client.get_bucket_lifecycle_configuration(Bucket=bucket_name)
     return response
 
+# as there may have time difference between SODA server and the client machine that run test cases, so use lastModified instead of start_time 
 def check_lifecycle_expiration_header(response, start_time, rule_id,
                                       delta_days):
     exp_header = response['ResponseMetadata']['HTTPHeaders']['x-amz-expiration']
     m = re.search(r'expiry-date="(.+)", rule-id="(.+)"', exp_header)
 
     expiration = datetime.datetime.strptime(m.group(1),
-                                            '%a %b %d %H:%M:%S %Y')
-    eq((expiration - start_time).days, delta_days)
+                                            '%a, %d %b %Y %H:%M:%S %Z')
+    lastModified = datetime.datetime.strptime(response['ResponseMetadata']['HTTPHeaders']['last-modified'],
+                                            '%a, %d %b %Y %H:%M:%S %Z')
+    eq((expiration - lastModified).days, delta_days)
     eq(m.group(2), rule_id)
 
     return True
@@ -9245,6 +9256,7 @@ def check_lifecycle_expiration_header(response, start_time, rule_id,
 @attr(method='put')
 @attr(operation='test lifecycle expiration header put')
 @attr('lifecycle')
+@attr('fails_on_aws')
 @attr('lifecycle_expiration')
 def test_lifecycle_expiration_header_put():
     """
@@ -9255,7 +9267,7 @@ def test_lifecycle_expiration_header_put():
 
     now = datetime.datetime.now(None)
     response = setup_lifecycle_expiration(
-        bucket_name, 'rule1', 1, 'days1/')
+        client, bucket_name, 'rule1', 1, 'days1/')
     eq(check_lifecycle_expiration_header(response, now, 'rule1', 1), True)
 
 @attr(resource='bucket')
@@ -9263,16 +9275,20 @@ def test_lifecycle_expiration_header_put():
 @attr(operation='test lifecycle expiration header head')
 @attr('lifecycle')
 @attr('lifecycle_expiration')
+@attr('soda_test')
 def test_lifecycle_expiration_header_head():
     """
     Check for valid x-amz-expiration header on HEAD request
     """
+
     bucket_name = get_new_bucket()
     client = get_client()
 
-    now = datetime.datetime.now(None)
+    now = datetime.datetime.now()
     response = setup_lifecycle_expiration(
-        bucket_name, 'rule1', 1, 'days1/')
+        client, bucket_name, 'rule1', 1, 'days1/')
+
+    key = 'days1/' + 'foo'
 
     # stat the object, check header
     response = client.head_object(Bucket=bucket_name, Key=key)
@@ -9283,6 +9299,7 @@ def test_lifecycle_expiration_header_head():
 @attr(method='put')
 @attr(operation='set lifecycle config with noncurrent version expiration')
 @attr('lifecycle')
+@attr('soda_test')
 def test_lifecycle_set_noncurrent():
     bucket_name = _create_objects(keys=['past/foo', 'future/bar'])
     client = get_client()
@@ -9392,6 +9409,7 @@ def test_lifecycle_deletemarker_expiration():
 @attr(method='put')
 @attr(operation='set lifecycle config with multipart expiration')
 @attr('lifecycle')
+@attr('soda_test')
 def test_lifecycle_set_multipart():
     bucket_name = get_new_bucket()
     client = get_client()
