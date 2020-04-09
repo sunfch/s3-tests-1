@@ -58,8 +58,37 @@ You can run only the boto3 tests with::
 ------------------------
  Added for SODA tests
 ------------------------
+>>>>>>>>>>>>>>>>>>>>>>>
+ Summary
+>>>>>>>>>>>>>>>>>>>>>>>
 - We use this test to make sure we are aws s3 compatible, so that many commonly used s3 client can use us as s3 storage.
 - As the master is moving from python2 to python3, we found some error when using the latest code of master, so we choosed a history version (c9c84faf48fd5a51009bc6d1cbd56b14af7bbc79, Fri Dec 20 18:30:21 2019) for our test.
 - Currently, SODA does not support default location, that means user need to specify a backend(location) to create bucket, so we made some change to test cases accordingly.
 - SODA will provide more features gradually, but currently, APIs of SODA is a subset of S3 APIs, that means not all those test cases this test program provided are supported by SODA. So we will add a new attribute, which looks like @attr('soda_test'), to those testcases we support now. You can run those testcases with this attribute as a filter. 
 - **Each time when a new PR raised, those test cases with @attr('soda_test') should pass before PR is merged.** At the same time, you can run testcases without this filter to see those features we have not support. And, with more features added, more test cases will add this attribute.
+
+>>>>>>>>>>>>>>>>>>>>>>>>>
+ Steps to run SODA tests
+>>>>>>>>>>>>>>>>>>>>>>>>>
+- Download the s3test_soda branch.
+
+- Follow the steps described above to:
+
+  + install virtualenv
+
+  + run ./bootstrap
+
+  + copy s3tests.conf.SAMPLE to s3tests.conf
+
+- Edit s3tests.conf:
+
+  + replace default ak/sk with the one for multi-cloud
+
+  + set api_name to be the backend used for test
+
+- Run test case, for example:
+
+  + S3TEST_CONF=your.conf ./virtualenv/bin/nosetests s3tests_boto3.functional.test_s3:test_bucket_list_empty as an example
+
+  + You also can run S3TEST_CONF=your.conf ./virtualenv/bin/nosetests s3tests_boto3.functional.test_s3 -a 'soda_test' to run soda test cases.
+
