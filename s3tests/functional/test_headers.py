@@ -224,6 +224,7 @@ def test_object_create_bad_contentlength_mismatch_above():
 @attr(operation='create w/empty authorization')
 @attr(assertion='fails 403')
 @nose.with_setup(teardown=_clear_custom_headers)
+@attr('soda_test')
 def test_object_create_bad_authorization_empty():
     key = _setup_bad_object({'Authorization': ''})
 
@@ -262,6 +263,7 @@ def test_object_create_amz_date_and_no_date():
 @attr(operation='create w/no authorization')
 @attr(assertion='fails 403')
 @nose.with_setup(teardown=_clear_custom_headers)
+@attr('soda_test')
 def test_object_create_bad_authorization_none():
     key = _setup_bad_object(remove=('Authorization',))
 
@@ -288,6 +290,7 @@ def test_bucket_create_contentlength_none():
 @attr(operation='set w/no content length')
 @attr(assertion='succeeds')
 @nose.with_setup(teardown=_clear_custom_headers)
+@attr('soda_test')
 def test_object_acl_create_contentlength_none():
     bucket = get_new_bucket()
     key = bucket.new_key('foo')
@@ -374,6 +377,7 @@ def test_bucket_create_bad_authorization_none():
 @attr(operation='create w/content length too short')
 @attr(assertion='fails 400')
 @nose.with_setup(teardown=_clear_custom_headers)
+@attr('soda_test')
 def test_object_create_bad_contentlength_mismatch_below_aws2():
     check_aws2_support()
     content = 'bar'
@@ -391,6 +395,7 @@ def test_object_create_bad_contentlength_mismatch_below_aws2():
 @attr(operation='create w/incorrect authorization')
 @attr(assertion='fails 403')
 @nose.with_setup(teardown=_clear_custom_headers)
+@attr('soda_test')
 def test_object_create_bad_authorization_incorrect_aws2():
     check_aws2_support()
     key = _setup_bad_object({'Authorization': 'AWS AKIAIGR7ZNNBHC5BKSUB:FWeDfwojDSdS2Ztmpfeubhd9isU='})

@@ -118,12 +118,6 @@ def nuke_prefixed_buckets(prefix, client=None):
             objects_list = get_objects_list(bucket_name, client)
             for obj in objects_list:
                 response = client.delete_object(Bucket=bucket_name,Key=obj)
-            versioned_objects_list = get_versioned_objects_list(bucket_name, client)
-            for obj in versioned_objects_list:
-                response = client.delete_object(Bucket=bucket_name,Key=obj[0],VersionId=obj[1])
-            delete_markers = get_delete_markers_list(bucket_name, client)
-            for obj in delete_markers:
-                response = client.delete_object(Bucket=bucket_name,Key=obj[0],VersionId=obj[1])
             try:
                 client.delete_bucket(Bucket=bucket_name)
             except ClientError, e:
@@ -186,6 +180,12 @@ def setup():
         config.main_api_name = cfg.get('s3 main',"api_name")
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         config.main_api_name = ""
+        pass
+
+    try:
+        config.alt_api_name = cfg.get('s3 alt',"api_name")
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        config.alt_api_name = ""
         pass
 
     config.alt_access_key = cfg.get('s3 alt',"access_key")
@@ -324,7 +324,8 @@ def get_new_bucket_resource(name=None):
     if name is None:
         name = get_new_bucket_name()
     bucket = s3.Bucket(name)
-    bucket_location = bucket.create()
+    location = get_main_api_name()
+    bucket_location = bucket.create(CreateBucketConfiguration={'LocationConstraint': location})
     return bucket
 
 def get_new_bucket(client=None, name=None):
@@ -339,7 +340,8 @@ def get_new_bucket(client=None, name=None):
     if name is None:
         name = get_new_bucket_name()
 
-    client.create_bucket(Bucket=name)
+    location = get_main_api_name()
+    client.create_bucket(Bucket=name, CreateBucketConfiguration={'LocationConstraint': location})
     return name
 
 
@@ -372,6 +374,9 @@ def get_main_email():
 
 def get_main_api_name():
     return config.main_api_name
+
+def get_alt_api_name():
+    return config.alt_api_name
 
 def get_main_kms_keyid():
     return config.main_kms_keyid

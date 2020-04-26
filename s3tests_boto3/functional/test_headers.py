@@ -165,6 +165,7 @@ def tag(*tags):
 @attr(method='put')
 @attr(operation='create w/invalid MD5')
 @attr(assertion='fails 400')
+@attr('soda_test')
 def test_object_create_bad_md5_invalid_short():
     e = _add_header_create_bad_object({'Content-MD5':'YWJyYWNhZGFicmE='})
     status, error_code = _get_status_and_error_code(e.response)
@@ -176,6 +177,7 @@ def test_object_create_bad_md5_invalid_short():
 @attr(method='put')
 @attr(operation='create w/mismatched MD5')
 @attr(assertion='fails 400')
+@attr('soda_test')
 def test_object_create_bad_md5_bad():
     e = _add_header_create_bad_object({'Content-MD5':'rL0Y20xC+Fzt72VPzMSk2A=='})
     status, error_code = _get_status_and_error_code(e.response)
@@ -187,6 +189,7 @@ def test_object_create_bad_md5_bad():
 @attr(method='put')
 @attr(operation='create w/empty MD5')
 @attr(assertion='fails 400')
+@attr('soda_test')
 def test_object_create_bad_md5_empty():
     e = _add_header_create_bad_object({'Content-MD5':''})
     status, error_code = _get_status_and_error_code(e.response)
@@ -198,6 +201,7 @@ def test_object_create_bad_md5_empty():
 @attr(method='put')
 @attr(operation='create w/no MD5 header')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_md5_none():
     bucket_name, key_name = _remove_header_create_object('Content-MD5')
     client = get_client()
@@ -218,6 +222,7 @@ def test_object_create_bad_expect_mismatch():
 @attr(method='put')
 @attr(operation='create w/empty expect')
 @attr(assertion='succeeds ... should it?')
+@attr('soda_test')
 def test_object_create_bad_expect_empty():
     bucket_name, key_name = _add_header_create_object({'Expect': ''})
     client = get_client()
@@ -228,6 +233,7 @@ def test_object_create_bad_expect_empty():
 @attr(method='put')
 @attr(operation='create w/no expect')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_expect_none():
     bucket_name, key_name = _remove_header_create_object('Expect')
     client = get_client()
@@ -240,6 +246,7 @@ def test_object_create_bad_expect_none():
 @attr(assertion='fails 400')
 # TODO: remove 'fails_on_rgw' and once we have learned how to remove the content-length header
 @attr('fails_on_rgw')
+@attr('soda_test')
 def test_object_create_bad_contentlength_empty():
     e = _add_header_create_bad_object({'Content-Length':''})
     status, error_code = _get_status_and_error_code(e.response)
@@ -251,6 +258,7 @@ def test_object_create_bad_contentlength_empty():
 @attr(operation='create w/negative content length')
 @attr(assertion='fails 400')
 @attr('fails_on_mod_proxy_fcgi')
+@attr('soda_test')
 def test_object_create_bad_contentlength_negative():
     client = get_client()
     bucket_name = get_new_bucket()
@@ -300,6 +308,7 @@ def test_object_create_bad_contentlength_mismatch_above():
 @attr(method='put')
 @attr(operation='create w/content type text/plain')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_contenttype_invalid():
     bucket_name, key_name = _add_header_create_object({'Content-Type': 'text/plain'})
     client = get_client()
@@ -310,6 +319,7 @@ def test_object_create_bad_contenttype_invalid():
 @attr(method='put')
 @attr(operation='create w/empty content type')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_contenttype_empty():
     client = get_client()
     key_name = 'foo'
@@ -321,6 +331,7 @@ def test_object_create_bad_contenttype_empty():
 @attr(method='put')
 @attr(operation='create w/no content type')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_contenttype_none():
     bucket_name = get_new_bucket()
     key_name = 'foo'
@@ -520,6 +531,7 @@ def test_bucket_create_bad_authorization_none():
 @attr(method='put')
 @attr(operation='create w/invalid MD5')
 @attr(assertion='fails 400')
+@attr('soda_test')
 def test_object_create_bad_md5_invalid_garbage_aws2():
     v2_client = get_v2_client()
     headers = {'Content-MD5': 'AWS HAHAHA'}
@@ -580,6 +592,7 @@ def test_object_create_bad_authorization_invalid_aws2():
 @attr(method='put')
 @attr(operation='create w/empty user agent')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_ua_empty_aws2():
     v2_client = get_v2_client()
     headers = {'User-Agent': ''}
@@ -591,6 +604,7 @@ def test_object_create_bad_ua_empty_aws2():
 @attr(method='put')
 @attr(operation='create w/no user agent')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_create_bad_ua_none_aws2():
     v2_client = get_v2_client()
     remove = 'User-Agent'
@@ -643,6 +657,7 @@ def test_object_create_bad_date_none_aws2():
 @attr(method='put')
 @attr(operation='create w/date in past')
 @attr(assertion='fails 403')
+@attr('soda_test')
 def test_object_create_bad_date_before_today_aws2():
     v2_client = get_v2_client()
     headers = {'x-amz-date': 'Tue, 07 Jul 2010 21:53:04 GMT'}
@@ -669,6 +684,7 @@ def test_object_create_bad_date_before_epoch_aws2():
 @attr(method='put')
 @attr(operation='create w/date after 9999')
 @attr(assertion='fails 403')
+@attr('soda_test')
 def test_object_create_bad_date_after_end_aws2():
     v2_client = get_v2_client()
     headers = {'x-amz-date': 'Tue, 07 Jul 9999 21:53:04 GMT'}

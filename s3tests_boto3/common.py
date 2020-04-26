@@ -181,7 +181,8 @@ def get_new_bucket(connection=None):
     # the only way for this to fail with a pre-existing bucket is if
     # someone raced us between setup nuke_prefixed_buckets and here;
     # ignore that as astronomically unlikely
-    bucket = connection.create_bucket(name)
+    location = get_main_api_name()
+    bucket = connection.create_bucket(name, location=location)
     return bucket
 
 def teardown():

@@ -72,7 +72,7 @@ def nuke_prefixed_buckets_on_conn(prefix, name, conn):
             for i in xrange(2):
                 try:
                     try:
-                        iterator = iter(bucket.list_versions())
+                        iterator = iter(bucket.list())
                         # peek into iterator to issue list operation
                         try:
                             keys = itertools.chain([next(iterator)], iterator)
@@ -90,7 +90,7 @@ def nuke_prefixed_buckets_on_conn(prefix, name, conn):
                             key=key,
                             ))
                         # key.set_canned_acl('private')
-                        bucket.delete_key(key.name, version_id = key.version_id)
+                        bucket.delete_key(key.name)
                     try:
                         bucket.delete()
                     except boto.exception.S3ResponseError as e:

@@ -57,6 +57,7 @@ from . import (
     get_main_user_id,
     get_main_email,
     get_main_api_name,
+    get_alt_api_name,
     get_alt_aws_access_key,
     get_alt_aws_secret_key,
     get_alt_display_name,
@@ -1841,6 +1842,7 @@ def test_bucket_concurrent_set_canned_acl():
 @attr(method='put')
 @attr(operation='non-existant bucket')
 @attr(assertion='fails 404')
+@attr('soda_test')
 def test_object_write_to_nonexist_bucket():
     key_names = ['foo']
     bucket_name = 'whatchutalkinboutwillis'
@@ -1872,6 +1874,7 @@ def test_bucket_create_delete():
 @attr(method='get')
 @attr(operation='read contents that were never written')
 @attr(assertion='fails 404')
+@attr('soda_test')
 def test_object_read_notexist():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -1979,6 +1982,7 @@ def test_object_head_zero_bytes():
 @attr(method='put')
 @attr(operation='write key')
 @attr(assertion='correct etag')
+@attr('soda_test')
 def test_object_write_check_etag():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -1990,6 +1994,7 @@ def test_object_write_check_etag():
 @attr(method='put')
 @attr(operation='write key')
 @attr(assertion='correct cache control header')
+@attr('soda_test')
 def test_object_write_cache_control():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2003,6 +2008,7 @@ def test_object_write_cache_control():
 @attr(method='put')
 @attr(operation='write key')
 @attr(assertion='correct expires header')
+@attr('soda_test')
 def test_object_write_expires():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2023,6 +2029,7 @@ def _get_body(response):
 @attr(method='all')
 @attr(operation='complete object life cycle')
 @attr(assertion='read back what we wrote and rewrote')
+@attr('soda_test')
 def test_object_write_read_update_read_delete():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2057,12 +2064,13 @@ def _set_get_metadata(metadata, bucket_name=None):
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar', Metadata=metadata_dict)
 
     response = client.get_object(Bucket=bucket_name, Key='foo')
-    return response['Metadata']['meta1']
+    return response['Metadata']['Meta1']
 
 @attr(resource='object.metadata')
 @attr(method='put')
 @attr(operation='metadata write/re-read')
 @attr(assertion='reread what we wrote')
+@attr('soda_test')
 def test_object_set_get_metadata_none_to_good():
     got = _set_get_metadata('mymeta')
     eq(got, 'mymeta')
@@ -2071,6 +2079,7 @@ def test_object_set_get_metadata_none_to_good():
 @attr(method='put')
 @attr(operation='metadata write/re-read')
 @attr(assertion='write empty value, returns empty value')
+@attr('soda_test')
 def test_object_set_get_metadata_none_to_empty():
     got = _set_get_metadata('')
     eq(got, '')
@@ -2079,6 +2088,7 @@ def test_object_set_get_metadata_none_to_empty():
 @attr(method='put')
 @attr(operation='metadata write/re-write')
 @attr(assertion='empty value replaces old')
+@attr('soda_test')
 def test_object_set_get_metadata_overwrite_to_empty():
     bucket_name = get_new_bucket()
     got = _set_get_metadata('oldmeta', bucket_name)
@@ -2090,6 +2100,7 @@ def test_object_set_get_metadata_overwrite_to_empty():
 @attr(method='put')
 @attr(operation='metadata write/re-write')
 @attr(assertion='UTF-8 values passed through')
+@attr('soda_test')
 def test_object_set_get_unicode_metadata():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2101,7 +2112,7 @@ def test_object_set_get_unicode_metadata():
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
     response = client.get_object(Bucket=bucket_name, Key='foo')
-    got = response['Metadata']['meta1'].decode('utf-8')
+    got = response['Metadata']['Meta1'].decode('utf-8')
     eq(got, u"Hello World\xe9")
 
 @attr(resource='object.metadata')
@@ -2220,6 +2231,7 @@ def test_object_metadata_replaced_on_put():
 @attr(method='put')
 @attr(operation='data write from file (w/100-Continue)')
 @attr(assertion='succeeds and returns written data')
+@attr('soda_test')
 def test_object_write_file():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2237,6 +2249,7 @@ def _get_post_url(bucket_name):
 @attr(method='post')
 @attr(operation='anonymous browser based upload via POST request')
 @attr(assertion='succeeds and returns written data')
+@attr('soda_test')
 def test_post_object_anonymous_request():
     bucket_name = get_new_bucket_name()
     client = get_client()
@@ -2244,7 +2257,8 @@ def test_post_object_anonymous_request():
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
     ("Content-Type" , "text/plain"),('file', ('bar'))])
 
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
     r = requests.post(url, files = payload)
     eq(r.status_code, 204)
     response = client.get_object(Bucket=bucket_name, Key='foo.txt')
@@ -2255,6 +2269,7 @@ def test_post_object_anonymous_request():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds and returns written data')
+@attr('soda_test')
 def test_post_object_authenticated_request():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2335,10 +2350,12 @@ def test_post_object_authenticated_no_content_type():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request, bad access key')
 @attr(assertion='fails')
+@attr('soda_test')
 def test_post_object_authenticated_request_bad_access_key():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
 
     url = _get_post_url(bucket_name)
     utc = pytz.utc
@@ -2373,10 +2390,12 @@ def test_post_object_authenticated_request_bad_access_key():
 @attr(method='post')
 @attr(operation='anonymous browser based upload via POST request')
 @attr(assertion='succeeds with status 201')
+@attr('soda_test')
 def test_post_object_set_success_code():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
 
     url = _get_post_url(bucket_name)
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
@@ -2385,17 +2404,19 @@ def test_post_object_set_success_code():
 
     r = requests.post(url, files = payload)
     eq(r.status_code, 201)
-    message = ET.fromstring(r.content).find('Key')
+    message = ET.fromstring(r.content).find('{http://s3.amazonaws.com/doc/2006-03-01/}Key')
     eq(message.text,'foo.txt')
 
 @attr(resource='object')
 @attr(method='post')
 @attr(operation='anonymous browser based upload via POST request')
 @attr(assertion='succeeds with status 204')
+@attr('soda_test')
 def test_post_object_set_invalid_success_code():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
 
     url = _get_post_url(bucket_name)
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
@@ -2410,6 +2431,7 @@ def test_post_object_set_invalid_success_code():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds and returns written data')
+@attr('soda_test')
 def test_post_object_upload_larger_than_chunk():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2452,6 +2474,7 @@ def test_post_object_upload_larger_than_chunk():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds and returns written data')
+@attr('soda_test')
 def test_post_object_set_key_from_filename():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2491,6 +2514,7 @@ def test_post_object_set_key_from_filename():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds with status 204')
+@attr('soda_test')
 def test_post_object_ignored_header():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2528,6 +2552,7 @@ def test_post_object_ignored_header():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds with status 204')
+@attr('soda_test')
 def test_post_object_case_insensitive_condition_fields():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2566,6 +2591,7 @@ def test_post_object_case_insensitive_condition_fields():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds with escaped leading $ and returns written data')
+@attr('soda_test')
 def test_post_object_escaped_field_values():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2605,10 +2631,12 @@ def test_post_object_escaped_field_values():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds and returns redirect url')
+@attr('soda_test')
 def test_post_object_success_redirect_action():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
 
     url = _get_post_url(bucket_name)
     redirect_url = _get_post_url(bucket_name)
@@ -2644,13 +2672,14 @@ def test_post_object_success_redirect_action():
     url = r.url
     response = client.get_object(Bucket=bucket_name, Key='foo.txt')
     eq(url,
-    '{rurl}?bucket={bucket}&key={key}&etag=%22{etag}%22'.format(rurl = redirect_url,\
+    '{rurl}?bucket={bucket}&etag=%22{etag}%22&key={key}'.format(rurl = redirect_url,\
     bucket = bucket_name, key = 'foo.txt', etag = response['ETag'].strip('"')))
 
 @attr(resource='object')
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with invalid signature error')
+@attr('soda_test')
 def test_post_object_invalid_signature():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2687,6 +2716,7 @@ def test_post_object_invalid_signature():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with access key does not exist error')
+@attr('soda_test')
 def test_post_object_invalid_access_key():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2723,6 +2753,7 @@ def test_post_object_invalid_access_key():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with invalid expiration error')
+@attr('soda_test')
 def test_post_object_invalid_date_format():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2759,6 +2790,7 @@ def test_post_object_invalid_date_format():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with missing key error')
+@attr('soda_test')
 def test_post_object_no_key_specified():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2794,6 +2826,7 @@ def test_post_object_no_key_specified():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with missing signature error')
+@attr('soda_test')
 def test_post_object_missing_signature():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2830,6 +2863,7 @@ def test_post_object_missing_signature():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with extra input fields policy error')
+@attr('soda_test')
 def test_post_object_missing_policy_condition():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2865,6 +2899,7 @@ def test_post_object_missing_policy_condition():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='succeeds using starts-with restriction on metadata header')
+@attr('soda_test')
 def test_post_object_user_specified_header():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -2898,7 +2933,7 @@ def test_post_object_user_specified_header():
     r = requests.post(url, files = payload)
     eq(r.status_code, 204)
     response = client.get_object(Bucket=bucket_name, Key='foo.txt')
-    eq(response['Metadata']['foo'], 'barclamp')
+    eq(response['Metadata']['Foo'], 'barclamp')
 
 @attr(resource='object')
 @attr(method='post')
@@ -3013,6 +3048,7 @@ def test_post_object_expires_is_case_sensitive():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with policy expired error')
+@attr('soda_test')
 def test_post_object_expired_policy():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -3049,6 +3085,7 @@ def test_post_object_expired_policy():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails using equality restriction on metadata header')
+@attr('soda_test')
 def test_post_object_invalid_request_field_value():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -3085,6 +3122,7 @@ def test_post_object_invalid_request_field_value():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with policy missing expiration error')
+@attr('soda_test')
 def test_post_object_missing_expires_condition():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -3121,6 +3159,7 @@ def test_post_object_missing_expires_condition():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with policy missing conditions error')
+@attr('soda_test')
 def test_post_object_missing_conditions_list():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -3185,6 +3224,7 @@ def test_post_object_upload_size_limit_exceeded():
 @attr(method='post')
 @attr(operation='authenticated browser based upload via POST request')
 @attr(assertion='fails with invalid content length error')
+@attr('soda_test')
 def test_post_object_missing_content_length_argument():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -3633,7 +3673,9 @@ def _setup_bucket_object_acl(bucket_acl, object_acl):
     """
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+
+    location = get_main_api_name()
+    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
     client.put_object(ACL=object_acl, Bucket=bucket_name, Key='foo')
 
     return bucket_name
@@ -3781,6 +3823,7 @@ def test_object_raw_authenticated():
 @attr(method='get')
 @attr(operation='authenticated on private bucket/private object with modified response headers')
 @attr(assertion='succeeds')
+@attr('soda_test')
 def test_object_raw_response_headers():
     bucket_name = _setup_bucket_object_acl('private', 'private')
 
@@ -4353,6 +4396,7 @@ def check_grants(got, want):
 @attr(method='get')
 @attr(operation='default acl')
 @attr(assertion='read back expected defaults')
+@attr('soda_test')
 def test_bucket_acl_default():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -4385,10 +4429,12 @@ def test_bucket_acl_default():
 @attr(operation='public-read acl')
 @attr(assertion='read back expected defaults')
 @attr('fails_on_aws') # <Error><Code>IllegalLocationConstraintException</Code><Message>The unspecified location constraint is incompatible for the region specific endpoint this request was sent to.</Message>
+@attr('soda_test')
 def test_bucket_acl_canned_during_create():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4399,20 +4445,20 @@ def test_bucket_acl_canned_during_create():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4421,10 +4467,12 @@ def test_bucket_acl_canned_during_create():
 @attr(method='put')
 @attr(operation='acl: public-read,private')
 @attr(assertion='read back expected values')
+@attr('soda_test')
 def test_bucket_acl_canned():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4435,20 +4483,20 @@ def test_bucket_acl_canned():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4475,10 +4523,12 @@ def test_bucket_acl_canned():
 @attr(method='put')
 @attr(operation='acl: public-read-write')
 @attr(assertion='read back expected values')
+@attr('soda_test')
 def test_bucket_acl_canned_publicreadwrite():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(ACL='public-read-write', Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4487,6 +4537,14 @@ def test_bucket_acl_canned_publicreadwrite():
     check_grants(
         grants,
         [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+                ),
             dict(
                 Permission='READ',
                 ID=None,
@@ -4502,14 +4560,6 @@ def test_bucket_acl_canned_publicreadwrite():
                 URI='http://acs.amazonaws.com/groups/global/AllUsers',
                 EmailAddress=None,
                 Type='Group',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
                 ),
             ],
         )
@@ -4554,6 +4604,7 @@ def test_bucket_acl_canned_authenticatedread():
 @attr(method='get')
 @attr(operation='default acl')
 @attr(assertion='read back expected defaults')
+@attr('soda_test')
 def test_object_acl_default():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -4584,6 +4635,7 @@ def test_object_acl_default():
 @attr(method='put')
 @attr(operation='acl public-read')
 @attr(assertion='read back expected values')
+@attr('soda_test')
 def test_object_acl_canned_during_create():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -4600,20 +4652,20 @@ def test_object_acl_canned_during_create():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4622,6 +4674,7 @@ def test_object_acl_canned_during_create():
 @attr(method='put')
 @attr(operation='acl public-read,private')
 @attr(assertion='read back expected values')
+@attr('soda_test')
 def test_object_acl_canned():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -4638,20 +4691,20 @@ def test_object_acl_canned():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4679,6 +4732,7 @@ def test_object_acl_canned():
 @attr(method='put')
 @attr(operation='acl public-read-write')
 @attr(assertion='read back expected values')
+@attr('soda_test')
 def test_object_acl_canned_publicreadwrite():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -4694,6 +4748,14 @@ def test_object_acl_canned_publicreadwrite():
         grants,
         [
             dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+                ),
+            dict(
                 Permission='READ',
                 ID=None,
                 DisplayName=None,
@@ -4708,14 +4770,6 @@ def test_object_acl_canned_publicreadwrite():
                 URI='http://acs.amazonaws.com/groups/global/AllUsers',
                 EmailAddress=None,
                 Type='Group',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
                 ),
             ],
         )
@@ -4940,6 +4994,7 @@ def test_object_acl_full_control_verify_attributes():
 @attr(method='ACLs')
 @attr(operation='set acl private')
 @attr(assertion='a private object can be set to private')
+@attr('soda_test')
 def test_bucket_acl_canned_private_to_private():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -5636,6 +5691,7 @@ def get_bucket_key_names(bucket_name):
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: private/private')
 @attr(assertion='public has no access to bucket or objects')
+@attr('soda_test')
 def test_access_bucket_private_object_private():
     # all the test_access_* tests follow this template
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='private', object_acl='private')
@@ -5699,6 +5755,7 @@ def test_access_bucket_private_objectv2_private():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: private/public-read')
 @attr(assertion='public can only read readable object')
+@attr('soda_test')
 def test_access_bucket_private_object_publicread():
 
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='private', object_acl='public-read')
@@ -5748,6 +5805,7 @@ def test_access_bucket_private_objectv2_publicread():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: private/public-read/write')
 @attr(assertion='public can only read the readable object')
+@attr('soda_test')
 def test_access_bucket_private_object_publicreadwrite():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='private', object_acl='public-read-write')
     alt_client = get_alt_client()
@@ -5797,6 +5855,7 @@ def test_access_bucket_private_objectv2_publicreadwrite():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: public-read/private')
 @attr(assertion='public can only list the bucket')
+@attr('soda_test')
 def test_access_bucket_publicread_object_private():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='public-read', object_acl='private')
     alt_client = get_alt_client()
@@ -5820,6 +5879,7 @@ def test_access_bucket_publicread_object_private():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: public-read/public-read')
 @attr(assertion='public can read readable objects and list bucket')
+@attr('soda_test')
 def test_access_bucket_publicread_object_publicread():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='public-read', object_acl='public-read')
     alt_client = get_alt_client()
@@ -5848,6 +5908,7 @@ def test_access_bucket_publicread_object_publicread():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: public-read/public-read-write')
 @attr(assertion='public can read readable objects and list bucket')
+@attr('soda_test')
 def test_access_bucket_publicread_object_publicreadwrite():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='public-read', object_acl='public-read-write')
     alt_client = get_alt_client()
@@ -5878,6 +5939,7 @@ def test_access_bucket_publicread_object_publicreadwrite():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: public-read-write/private')
 @attr(assertion='private objects cannot be read, but can be overwritten')
+@attr('soda_test')
 def test_access_bucket_publicreadwrite_object_private():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='public-read-write', object_acl='private')
     alt_client = get_alt_client()
@@ -5897,6 +5959,7 @@ def test_access_bucket_publicreadwrite_object_private():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: public-read-write/public-read')
 @attr(assertion='private objects cannot be read, but can be overwritten')
+@attr('soda_test')
 def test_access_bucket_publicreadwrite_object_publicread():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='public-read-write', object_acl='public-read')
     alt_client = get_alt_client()
@@ -5919,6 +5982,7 @@ def test_access_bucket_publicreadwrite_object_publicread():
 @attr(method='ACLs')
 @attr(operation='set bucket/object acls: public-read-write/public-read-write')
 @attr(assertion='private objects cannot be read, but can be overwritten')
+@attr('soda_test')
 def test_access_bucket_publicreadwrite_object_publicreadwrite():
     bucket_name, key1, key2, newkey = _setup_access(bucket_acl='public-read-write', object_acl='public-read-write')
     alt_client = get_alt_client()
@@ -6106,6 +6170,7 @@ def test_bucket_list_special_prefix():
 @attr(method='put')
 @attr(operation='copy zero sized object in same bucket')
 @attr(assertion='works')
+@attr('soda_test')
 def test_object_copy_zero_size():
     key = 'foo123bar'
     bucket_name = _create_objects(keys=[key])
@@ -6124,6 +6189,7 @@ def test_object_copy_zero_size():
 @attr(method='put')
 @attr(operation='copy object in same bucket')
 @attr(assertion='works')
+@attr('soda_test')
 def test_object_copy_same_bucket():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6141,6 +6207,7 @@ def test_object_copy_same_bucket():
 @attr(method='put')
 @attr(operation='copy object with content-type')
 @attr(assertion='works')
+@attr('soda_test')
 def test_object_copy_verify_contenttype():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6162,6 +6229,7 @@ def test_object_copy_verify_contenttype():
 @attr(method='put')
 @attr(operation='copy object to itself')
 @attr(assertion='fails')
+@attr('soda_test')
 def test_object_copy_to_itself():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6178,12 +6246,13 @@ def test_object_copy_to_itself():
 @attr(method='put')
 @attr(operation='modify object metadata by copying')
 @attr(assertion='fails')
+@attr('soda_test')
 def test_object_copy_to_itself_with_metadata():
     bucket_name = get_new_bucket()
     client = get_client()
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
     copy_source = {'Bucket': bucket_name, 'Key': 'foo123bar'}
-    metadata = {'foo': 'bar'}
+    metadata = {'Foo': 'bar'}
 
     client.copy_object(Bucket=bucket_name, CopySource=copy_source, Key='foo123bar', Metadata=metadata, MetadataDirective='REPLACE')
     response = client.get_object(Bucket=bucket_name, Key='foo123bar')
@@ -6193,6 +6262,7 @@ def test_object_copy_to_itself_with_metadata():
 @attr(method='put')
 @attr(operation='copy object from different bucket')
 @attr(assertion='works')
+@attr('soda_test')
 def test_object_copy_diff_bucket():
     bucket_name1 = get_new_bucket()
     bucket_name2 = get_new_bucket()
@@ -6212,13 +6282,16 @@ def test_object_copy_diff_bucket():
 @attr(method='put')
 @attr(operation='copy to an inaccessible bucket')
 @attr(assertion='fails w/AttributeError')
+@attr('soda_test')
 def test_object_copy_not_owned_bucket():
     client = get_client()
     alt_client = get_alt_client()
     bucket_name1 = get_new_bucket_name()
     bucket_name2 = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket_name1)
-    alt_client.create_bucket(Bucket=bucket_name2)
+    location = get_main_api_name()
+    client.create_bucket(Bucket=bucket_name1, CreateBucketConfiguration={'LocationConstraint': location})
+    location = get_alt_api_name()
+    alt_client.create_bucket(Bucket=bucket_name2, CreateBucketConfiguration={'LocationConstraint': location})
 
     client.put_object(Bucket=bucket_name1, Key='foo123bar', Body='foo')
 
@@ -6236,7 +6309,8 @@ def test_object_copy_not_owned_object_bucket():
     client = get_client()
     alt_client = get_alt_client()
     bucket_name = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket_name)
+    location = get_main_api_name()
+    client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location})
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
 
     alt_user_id = get_alt_user_id()
@@ -6257,6 +6331,7 @@ def test_object_copy_not_owned_object_bucket():
 @attr(method='put')
 @attr(operation='copy object and change acl')
 @attr(assertion='works')
+@attr('soda_test')
 def test_object_copy_canned_acl():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6279,13 +6354,14 @@ def test_object_copy_canned_acl():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='copy object and retain metadata')
+@attr('soda_test')
 def test_object_copy_retaining_metadata():
     for size in [3, 1024 * 1024]:
         bucket_name = get_new_bucket()
         client = get_client()
         content_type = 'audio/ogg'
 
-        metadata = {'key1': 'value1', 'key2': 'value2'}
+        metadata = {'Key1': 'value1', 'Key2': 'value2'}
         client.put_object(Bucket=bucket_name, Key='foo123bar', Metadata=metadata, ContentType=content_type, Body=str(bytearray(size)))
 
         copy_source = {'Bucket': bucket_name, 'Key': 'foo123bar'}
@@ -6299,16 +6375,17 @@ def test_object_copy_retaining_metadata():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='copy object and replace metadata')
+@attr('soda_test')
 def test_object_copy_replacing_metadata():
     for size in [3, 1024 * 1024]:
         bucket_name = get_new_bucket()
         client = get_client()
         content_type = 'audio/ogg'
 
-        metadata = {'key1': 'value1', 'key2': 'value2'}
+        metadata = {'Key1': 'value1', 'Key2': 'value2'}
         client.put_object(Bucket=bucket_name, Key='foo123bar', Metadata=metadata, ContentType=content_type, Body=str(bytearray(size)))
 
-        metadata = {'key3': 'value3', 'key2': 'value2'}
+        metadata = {'Key3': 'value3', 'Key2': 'value2'}
         content_type = 'audio/mpeg'
 
         copy_source = {'Bucket': bucket_name, 'Key': 'foo123bar'}
@@ -6322,6 +6399,7 @@ def test_object_copy_replacing_metadata():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='copy from non-existent bucket')
+@attr('soda_test')
 def test_object_copy_bucket_not_found():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6334,6 +6412,7 @@ def test_object_copy_bucket_not_found():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='copy from non-existent object')
+@attr('soda_test')
 def test_object_copy_key_not_found():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6561,6 +6640,7 @@ def test_object_copy_versioning_multipart_upload():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='check multipart upload without parts')
+@attr('soda_test')
 def test_multipart_upload_empty():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -6576,12 +6656,13 @@ def test_multipart_upload_empty():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='check multipart uploads with single small part')
+@attr('soda_test')
 def test_multipart_upload_small():
     bucket_name = get_new_bucket()
     client = get_client()
 
     key1 = "mymultipart"
-    objlen = 1
+    objlen = 5 * 1024 * 1024
     (upload_id, data, parts) = _multipart_upload(bucket_name=bucket_name, key=key1, size=objlen)
     response = client.complete_multipart_upload(Bucket=bucket_name, Key=key1, UploadId=upload_id, MultipartUpload={'Parts': parts})
     response = client.get_object(Bucket=bucket_name, Key=key1)
@@ -6789,12 +6870,13 @@ def _check_content_using_range(key, bucket_name, data, step):
 @attr(operation='complete multi-part upload')
 @attr(assertion='successful')
 @attr('fails_on_aws')
+@attr('soda_test')
 def test_multipart_upload():
     bucket_name = get_new_bucket()
     key="mymultipart"
     content_type='text/bla'
     objlen = 30 * 1024 * 1024
-    metadata = {'foo': 'bar'}
+    metadata = {'Foo': 'bar'}
     client = get_client()
 
     (upload_id, data, parts) = _multipart_upload(bucket_name=bucket_name, key=key, size=objlen, content_type=content_type, metadata=metadata)
@@ -6881,7 +6963,7 @@ def test_multipart_copy_versioned():
 
 def _check_upload_multipart_resend(bucket_name, key, objlen, resend_parts):
     content_type = 'text/bla'
-    metadata = {'foo': 'bar'}
+    metadata = {'Foo': 'bar'}
     client = get_client()
     (upload_id, data, parts) = _multipart_upload(bucket_name=bucket_name, key=key, size=objlen, content_type=content_type, metadata=metadata, resend_parts=resend_parts)
     client.complete_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id, MultipartUpload={'Parts': parts})
@@ -6903,6 +6985,7 @@ def _check_upload_multipart_resend(bucket_name, key, objlen, resend_parts):
 @attr(method='put')
 @attr(operation='complete multi-part upload')
 @attr(assertion='successful')
+@attr('soda_test')
 def test_multipart_upload_resend_part():
     bucket_name = get_new_bucket()
     key="mymultipart"
@@ -6915,6 +6998,7 @@ def test_multipart_upload_resend_part():
     _check_upload_multipart_resend(bucket_name, key, objlen, [0,1,2,3,4,5])
 
 @attr(assertion='successful')
+@attr('soda_test')
 def test_multipart_upload_multiple_sizes():
     bucket_name = get_new_bucket()
     key="mymultipart"
@@ -6987,6 +7071,7 @@ def test_multipart_copy_multiple_sizes():
 @attr(method='put')
 @attr(operation='check failure on multiple multi-part upload with size too small')
 @attr(assertion='fails 400')
+@attr('soda_test')
 def test_multipart_upload_size_too_small():
     bucket_name = get_new_bucket()
     key="mymultipart"
@@ -7036,6 +7121,7 @@ def _do_test_multipart_upload_contents(bucket_name, key, num_parts):
 @attr(method='put')
 @attr(operation='check contents of multi-part upload')
 @attr(assertion='successful')
+@attr('soda_test')
 def test_multipart_upload_contents():
     bucket_name = get_new_bucket()
     _do_test_multipart_upload_contents(bucket_name, 'mymultipart', 3)
@@ -7044,6 +7130,7 @@ def test_multipart_upload_contents():
 @attr(method='put')
 @attr(operation=' multi-part upload overwrites existing key')
 @attr(assertion='successful')
+@attr('soda_test')
 def test_multipart_upload_overwrite_existing_object():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -7073,6 +7160,7 @@ def test_multipart_upload_overwrite_existing_object():
 @attr(method='put')
 @attr(operation='abort multi-part upload')
 @attr(assertion='successful')
+@attr('soda_test')
 def test_abort_multipart_upload():
     bucket_name = get_new_bucket()
     key="mymultipart"
@@ -7093,6 +7181,7 @@ def test_abort_multipart_upload():
 @attr(method='put')
 @attr(operation='abort non-existent multi-part upload')
 @attr(assertion='fails 404')
+@attr('soda_test')
 def test_abort_multipart_upload_not_found():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -7141,6 +7230,7 @@ def test_list_multipart_upload():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='multi-part upload with missing part')
+@attr('soda_test')
 def test_multipart_upload_missing_part():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -7163,6 +7253,7 @@ def test_multipart_upload_missing_part():
 @attr(resource='object')
 @attr(method='put')
 @attr(operation='multi-part upload with incorrect ETag')
+@attr('soda_test')
 def test_multipart_upload_incorrect_etag():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -7575,6 +7666,7 @@ def _test_atomic_read(file_size):
 @attr(method='put')
 @attr(operation='read atomicity')
 @attr(assertion='1MB successful')
+@attr('soda_test')
 def test_atomic_read_1mb():
     _test_atomic_read(1024*1024)
 
@@ -7582,6 +7674,7 @@ def test_atomic_read_1mb():
 @attr(method='put')
 @attr(operation='read atomicity')
 @attr(assertion='4MB successful')
+@attr('soda_test')
 def test_atomic_read_4mb():
     _test_atomic_read(1024*1024*4)
 
@@ -7589,6 +7682,7 @@ def test_atomic_read_4mb():
 @attr(method='put')
 @attr(operation='read atomicity')
 @attr(assertion='8MB successful')
+@attr('soda_test')
 def test_atomic_read_8mb():
     _test_atomic_read(1024*1024*8)
 
@@ -7627,6 +7721,7 @@ def _test_atomic_write(file_size):
 @attr(method='put')
 @attr(operation='write atomicity')
 @attr(assertion='1MB successful')
+@attr('soda_test')
 def test_atomic_write_1mb():
     _test_atomic_write(1024*1024)
 
@@ -7634,6 +7729,7 @@ def test_atomic_write_1mb():
 @attr(method='put')
 @attr(operation='write atomicity')
 @attr(assertion='4MB successful')
+@attr('soda_test')
 def test_atomic_write_4mb():
     _test_atomic_write(1024*1024*4)
 
@@ -7641,6 +7737,7 @@ def test_atomic_write_4mb():
 @attr(method='put')
 @attr(operation='write atomicity')
 @attr(assertion='8MB successful')
+@attr('soda_test')
 def test_atomic_write_8mb():
     _test_atomic_write(1024*1024*8)
 
@@ -7672,6 +7769,7 @@ def _test_atomic_dual_write(file_size):
 @attr(method='put')
 @attr(operation='write one or the other')
 @attr(assertion='1MB successful')
+@attr('soda_test')
 def test_atomic_dual_write_1mb():
     _test_atomic_dual_write(1024*1024)
 
@@ -7679,6 +7777,7 @@ def test_atomic_dual_write_1mb():
 @attr(method='put')
 @attr(operation='write one or the other')
 @attr(assertion='4MB successful')
+@attr('soda_test')
 def test_atomic_dual_write_4mb():
     _test_atomic_dual_write(1024*1024*4)
 
@@ -7686,6 +7785,7 @@ def test_atomic_dual_write_4mb():
 @attr(method='put')
 @attr(operation='write one or the other')
 @attr(assertion='8MB successful')
+@attr('soda_test')
 def test_atomic_dual_write_8mb():
     _test_atomic_dual_write(1024*1024*8)
 
@@ -7723,6 +7823,7 @@ def _test_atomic_conditional_write(file_size):
 @attr(operation='write atomicity')
 @attr(assertion='1MB successful')
 @attr('fails_on_aws')
+@attr('soda_test')
 def test_atomic_conditional_write_1mb():
     _test_atomic_conditional_write(1024*1024)
 
@@ -7776,6 +7877,7 @@ def test_atomic_dual_conditional_write_1mb():
 @attr('fails_on_aws')
 # TODO: test not passing with SSL, fix this
 @attr('fails_on_rgw')
+@attr('soda_test')
 def test_atomic_write_bucket_gone():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -7795,6 +7897,7 @@ def test_atomic_write_bucket_gone():
 @attr(method='put')
 @attr(operation='begin to overwrite file with multipart upload then abort')
 @attr(assertion='read back original key contents')
+@attr('soda_test')
 def test_atomic_multipart_upload_write():
     bucket_name = get_new_bucket()
     client = get_client()

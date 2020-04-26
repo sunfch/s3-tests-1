@@ -859,6 +859,7 @@ def test_atomic_dual_conditional_write_1mb():
 @attr(operation='write file in deleted bucket')
 @attr(assertion='fail 404')
 @attr('fails_on_aws')
+@attr('soda_test')
 def test_atomic_write_bucket_gone():
     bucket = get_new_bucket()
 
